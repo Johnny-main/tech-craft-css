@@ -105,13 +105,39 @@ const Challenge = ({ params: { id } }: PageProps) => {
         </div>
       ) : (
         <HtmlContextProvider>
-          <div className="grid grid-cols-[auto,_450px,_450px] justify-items-center h-full">
+          <div className="font-sans flex flex-col justify-center p-5 border-4 border-color0">
+          <div className="grid grid-cols-[auto,_450px,_450px] justify-items-center h-fit gap-y-4">
+            {/* Titles for each column */}
+            <h1 className="text-2xl font-bold mb-2">Editor</h1>
+            <h1 className="text-2xl font-bold mb-2">Compare View</h1>
+            <h1 className="text-2xl font-bold mb-2">Original Image</h1>
+
+            {/* Content for each column */}
             <Editor />
-            <CompareSlider items={[<Iframe key="iframe" />, <Image id={id} key="image" />]} />
+            <div>
+              <CompareSlider items={[<Iframe key="iframe" />, <Image id={id} key="image" />]} />
+              <div className="container mx-auto px-4 py-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                  <div>
+                    <h3 className="text-lg font-semibold">Dimensions:</h3>
+                    <p className="text-base">Height: 300px</p>
+                    <p className="text-base">Width : 400px</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Important Code:</h3>
+                    <p className="text-base">Saffron   : #FF671F</p>
+                    <p className="text-base">White     : #FFFFFF</p>
+                    <p className="text-base">Green     : #046A38</p>
+                    <p className="text-base">Navy blue : #06038D</p>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div>
               <Image id={id} className="base" />
               <SubmitButton />
             </div>
+          </div>
           </div>
         </HtmlContextProvider>
       )}

@@ -39,11 +39,12 @@ const SubmitButton = () => {
   };
 
   return (
+    <div className='flex items-center justify-center'>
     <button
       type="button"
       disabled={loading}
       onClick={clickHandler}
-      className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-600/50 rounded-md p-2 mt-10"
+      className="w-1/2 items-center bg-orange-500 hover:bg-orange-600 disabled:bg-orange-600/50 rounded-md p-2 mt-12 font-semibold" 
     >
       Submit
       <Modal isOpen={similarityPercent !== undefined}>
@@ -55,6 +56,7 @@ const SubmitButton = () => {
         </p>
       </Modal>
     </button>
+    </div>
   );
 };
 
