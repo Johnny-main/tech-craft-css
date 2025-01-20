@@ -77,6 +77,8 @@ const takeScreenshot = async (
       // Upload the screenshot directly to Cloud Shell
       const timestamp = new Date();
       const formattedTimestamp = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}_${String(timestamp.getHours()).padStart(2, '0')}-${String(timestamp.getMinutes()).padStart(2, '0')}-${String(timestamp.getSeconds()).padStart(2, '0')}`;
+      
+      // Use formattedTimestamp for the file name
       await uploadToCloudShell(simulatedScreenshotBuffer, `${formattedTimestamp}-${fileName}.png`);
     }
   } catch (err) {
