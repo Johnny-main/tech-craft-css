@@ -1,7 +1,8 @@
 import { promisify } from 'util';
-import puppeteer from 'puppeteer'; // Puppeteer with full Chromium support
+import puppeteer from 'puppeteer-core'; // Use puppeteer-core for compatibility with serverless environments
 import getPixels from 'get-pixels';
 import { exec } from 'child_process';
+import chrome from 'chrome-aws-lambda'; // Import chrome-aws-lambda for serverless compatibility
 
 const execAsync = promisify(exec);
 
@@ -33,14 +34,14 @@ const uploadToCloudShell = async (fileBuffer: Buffer, fileName: string) => {
   try {
     const formData = new FormData();
     formData.append('filee', new Blob([fileBuffer]), fileName);
-    
+
     const requestOptions = {
       method: 'POST',
-      body: formData
+      body: formData,
     };
 
     const response = await fetch(CLOUD_SHELL_BASE_URL, requestOptions);
-    
+
     if (response.ok) {
       console.log(`File uploaded successfully: ${fileName}`);
     } else {
@@ -59,16 +60,20 @@ const takeScreenshot = async (
   fileNames: string[]
 ) => {
   try {
+    // Launch Puppeteer with chrome-aws-lambda for Vercel compatibility
     const browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+      executablePath: await chrome.executablePath, // Use the executable path from chrome-aws-lambda
+      args: chrome.args,
+      defaultViewport: chrome.defaultViewport,
+      ignoreHTTPSErrors: true,
     });
 
     const page = await browser.newPage();
     const url = [process.env.PUBLIC_URL, 'screenshot', id].join('/');
 
     if (!url) {
-      throw Error('invalid url - make sure to set the PUBLIC_URL env properly');
+      throw new Error('invalid url - make sure to set the PUBLIC_URL env properly');
     }
 
     await page.goto(url);
