@@ -74,21 +74,33 @@ const Challenge = ({ params: { id } }: PageProps) => {
   };
 
   return (
-    <main className="container min-w-[1440px] h-screen text-gray-200 mx-auto pt-10">
+    <>
       {!loaded ? (
-        <div className="flex flex-col items-center justify-center h-screen">
+        <div className="font-sans flex flex-col items-center justify-center p-5 md:p-10 lg:p-18 border-4 border-color0">
+          <h1 className="text-lg lg:text-4xl font-bold mb-4 text-center lg:px-2">🚀TechCraft : Technical Event🚀</h1>
+          <h1 className="text-lg lg:text-4xl font-bold mb-4 text-center lg:px-2">⚔️ CSS Battle ⚔️</h1>
+          <h2 className="text-lg lg:text-2xl font-semibold mb-4 text-center lg:px-2">Unleash your Design skills in this Epic CSS showdown</h2>
+          <ul className="list-disc pl-6 mb-5 text-left lg:text-lg">
+            <p className="font-bold text-left">🗒️ Instructions</p>
+            <li>You have been given compiler to code.</li>
+            <li>An image be given to match the CSS.</li>
+            <li>Code HTML and CSS to make the same image provided.</li>
+            <li>The closer your guess, the higher your score.</li>
+            <li>Qualify based of high score and less time.</li>
+            <li>Create 'div' or 'spans' and provide css to it.</li>
+          </ul>
           <input
             type="text"
-            placeholder="Enter your name"
+            placeholder="Enter your Team Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="p-2 border border-gray-400 rounded-md mb-4"
+            className="p-2 px-6 border rounded-md mb-4 text-black font-semibold"
           />
           <button
             onClick={handleStart}
-            className="bg-blue-500 hover:bg-blue-600 text-white rounded-md p-2"
+            className="bg-blue-500 hover:bg-blue-700 text-white rounded-md p-2 px-4 font-semibold"
           >
-            Start Challenge
+            Start Challenge ⏱️
           </button>
         </div>
       ) : (
@@ -103,7 +115,7 @@ const Challenge = ({ params: { id } }: PageProps) => {
           </div>
         </HtmlContextProvider>
       )}
-    </main>
+    </>
   );
 };
 
