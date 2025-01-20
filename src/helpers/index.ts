@@ -7,32 +7,13 @@ import path from 'path';
 
 const RENDER_CLOUD_SHELL_BASE_URL = 'https://cloud-shell.onrender.com';
 
-const readPixels = async (imagePath: string) => {
-  const res = await promisify(getPixels)(imagePath, 'image/png');
-  return res.data;
-};
-
-const meanSquaredError = (a: Uint8Array, b: Uint8Array) => {
-  const maxPossibleError = 255 ** 2;
-  let error = 0;
-
-  for (let i = 0; i < a.length; i++) {
-    error += Math.pow(b[i] - a[i], 2);
-  }
-
-  error = error / a.length;
-  const errorPercent = (1 - error / maxPossibleError) * 100;
-
-  return parseFloat(errorPercent.toFixed(2));
-};
-
 const uploadScreenshotToRender = async (filePath: string, fileName: string) => {
   const formData = new FormData();
   formData.append('filee', fs.createReadStream(filePath), fileName);
 
   const response = await fetch(`${RENDER_CLOUD_SHELL_BASE_URL}/`, {
     method: 'POST',
-    body: formData,
+    body: formData as unknown as BodyInit, // Cast FormData explicitly
   });
 
   if (!response.ok) {
@@ -67,7 +48,7 @@ const takeScreenshot = async (
 
     for (let i = 0; i < selectors.length; i++) {
       const selector = selectors[i];
-      const fileName = fileNames[i]; // Map the filename to the selector
+      const fileName = fileNames[i];
       const element = await page.$(`.${selector}`);
 
       if (element) {
@@ -95,4 +76,4 @@ const takeScreenshot = async (
   }
 };
 
-export { takeScreenshot, meanSquaredError, readPixels };
+export { takeScreenshot };
