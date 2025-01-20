@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import puppeteer from 'puppeteer-core'; // Use puppeteer-core to avoid unnecessary chrome installation
+import puppeteer from 'puppeteer'; // Puppeteer with full Chromium support
 import getPixels from 'get-pixels';
 import { exec } from 'child_process';
 
@@ -53,11 +53,10 @@ const takeScreenshot = async (
   fileNames: string[]
 ) => {
   try {
-    // Launch puppeteer in headless mode without chrome installation
+    // Launch puppeteer in headless mode
     const browser = await puppeteer.launch({
       headless: true, // Ensure headless mode
-      executablePath: '/usr/bin/google-chrome-stable', // Specify the path to Chrome if required by your environment
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] // Needed in some environments like Docker or serverless
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] // Necessary in some environments like Docker/serverless
     });
 
     const page = await browser.newPage();
@@ -78,7 +77,7 @@ const takeScreenshot = async (
       if (element) {
         const timestamp = new Date();
         const formattedTimestamp = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}_${String(timestamp.getHours()).padStart(2, '0')}-${String(timestamp.getMinutes()).padStart(2, '0')}-${String(timestamp.getSeconds()).padStart(2, '0')}`;
-        const filePath = `/tmp/${formattedTimestamp}-${fileName}.png`; // Save to temporary folder
+        const filePath = `/tmp/${formattedTimestamp}-${fileName}.png`; // Save to /tmp (ephemeral storage)
 
         // Screenshot saved to /tmp (ephemeral directory) for cloud environments
         await element.screenshot({ path: filePath, type: 'png' });
