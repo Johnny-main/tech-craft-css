@@ -1,8 +1,7 @@
 import { promisify } from 'util';
 import puppeteer from 'puppeteer-core'; // Use puppeteer-core for compatibility with serverless environments
 import getPixels from 'get-pixels';
-import { exec } from 'child_process';
-import chrome from 'chrome-aws-lambda'; // Import chrome-aws-lambda for serverless compatibility
+import chromium from '@sparticuz/chromium'; // Import @sparticuz/chromium for serverless compatibility
 
 const execAsync = promisify(exec);
 
@@ -59,13 +58,14 @@ const takeScreenshot = async (
   selectors: string[],
   fileNames: string[]
 ) => {
+  let browser = null;
   try {
-    // Launch Puppeteer with chrome-aws-lambda for Vercel compatibility
-    const browser = await puppeteer.launch({
-      headless: true,
-      executablePath: await chrome.executablePath, // Use the executable path from chrome-aws-lambda
-      args: chrome.args,
-      defaultViewport: chrome.defaultViewport,
+    // Launch Puppeteer with @sparticuz/chromium for Vercel compatibility
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
       ignoreHTTPSErrors: true,
     });
 
@@ -103,6 +103,10 @@ const takeScreenshot = async (
     await browser.close();
   } catch (err) {
     console.error(err);
+  } finally {
+    if (browser !== null) {
+      await browser.close();
+    }
   }
 };
 
