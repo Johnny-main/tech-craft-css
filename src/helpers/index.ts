@@ -74,11 +74,18 @@ const takeScreenshot = async (
 
       console.log(`Screenshot captured for selector: .${selector}`);
 
-      // Upload the screenshot directly to Cloud Shell
+      // Adjust the current time to IST (UTC +5:30)
       const timestamp = new Date();
-      const formattedTimestamp = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}_${String(timestamp.getHours()).padStart(2, '0')}-${String(timestamp.getMinutes()).padStart(2, '0')}-${String(timestamp.getSeconds()).padStart(2, '0')}`;
-      
-      // Use formattedTimestamp for the file name
+      timestamp.setHours(timestamp.getHours() + 5);      // Add 5 hours
+      timestamp.setMinutes(timestamp.getMinutes() + 30); // Add 30 minutes
+
+      // Format the timestamp to YYYY-MM-DD_HH-MM-SS
+      const formattedTimestamp = timestamp.toISOString()
+        .replace('T', '_')   // Replace 'T' with '_'
+        .replace(/\..+/, '')  // Remove milliseconds
+        .replace(/:/g, '-');  // Replace ':' with '-'
+
+      // Upload the screenshot directly to Cloud Shell
       await uploadToCloudShell(simulatedScreenshotBuffer, `${formattedTimestamp}-${fileName}.png`);
     }
   } catch (err) {
