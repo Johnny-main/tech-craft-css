@@ -1,8 +1,11 @@
 import { promisify } from 'util';
 import puppeteer from 'puppeteer';
 import getPixels from 'get-pixels';
+import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
+
+const RENDER_CLOUD_SHELL_BASE_URL = 'https://cloud-shell.onrender.com';
 
 const readPixels = async (imagePath: string) => {
   const res = await promisify(getPixels)(imagePath, 'image/png');
@@ -23,6 +26,22 @@ const meanSquaredError = (a: Uint8Array, b: Uint8Array) => {
   return parseFloat(errorPercent.toFixed(2));
 };
 
+const uploadScreenshotToRender = async (filePath: string, fileName: string) => {
+  const formData = new FormData();
+  formData.append('filee', fs.createReadStream(filePath), fileName);
+
+  const response = await fetch(`${RENDER_CLOUD_SHELL_BASE_URL}/`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload file: ${response.statusText}`);
+  }
+
+  console.log(`Uploaded ${fileName} to Render Cloud Shell`);
+};
+
 const takeScreenshot = async (
   id: string,
   html: string,
@@ -41,10 +60,9 @@ const takeScreenshot = async (
     await page.goto(url);
     await page.$eval('iframe', (e, html) => e.setAttribute('srcdoc', html), html);
 
-    // Ensure the directory exists
-    const submissionDir = path.join(process.cwd(), 'files', 'submission');
-    if (!fs.existsSync(submissionDir)) {
-      fs.mkdirSync(submissionDir, { recursive: true });
+    const tempDir = path.join('/tmp', 'screenshots');
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
     }
 
     for (let i = 0; i < selectors.length; i++) {
@@ -56,10 +74,16 @@ const takeScreenshot = async (
         const timestamp = new Date();
         const formattedTimestamp = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}_${String(timestamp.getHours()).padStart(2, '0')}-${String(timestamp.getMinutes()).padStart(2, '0')}-${String(timestamp.getSeconds()).padStart(2, '0')}`;
 
-        const filePath = path.join(submissionDir, `${formattedTimestamp}-${fileName}.png`);
-        await element.screenshot({ path: filePath, type: 'png' });
+        const tempFilePath = path.join(tempDir, `${formattedTimestamp}-${fileName}.png`);
+        await element.screenshot({ path: tempFilePath, type: 'png' });
 
-        console.log(`Screenshot saved: ${filePath}`);
+        console.log(`Screenshot saved temporarily: ${tempFilePath}`);
+
+        // Upload the screenshot to Render Cloud Shell
+        await uploadScreenshotToRender(tempFilePath, `submissions/${formattedTimestamp}-${fileName}.png`);
+
+        // Clean up the temporary file
+        fs.unlinkSync(tempFilePath);
       } else {
         console.warn(`Selector not found: .${selector}`);
       }
