@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 
-// Use an absolute path to avoid issues in production environments
-const filePath = path.join('/tmp', 'teamdata.json');
+const RENDER_CLOUD_SHELL_BASE_URL = 'https://cloud-shell.onrender.com';
+
 interface Team {
   name: string;
   time: string;
@@ -13,14 +11,12 @@ export async function POST(req: Request) {
   try {
     const data: Team = await req.json();
 
-    // Initialize an empty teamData array if the file doesn't exist
+    // Fetch the existing data from Render Cloud Shell
+    const response = await fetch(`${RENDER_CLOUD_SHELL_BASE_URL}/files/teamdata.json`);
     let teamData: Team[] = [];
-    if (fs.existsSync(filePath)) {
-      const existingData = fs.readFileSync(filePath, 'utf-8');
-      teamData = existingData ? JSON.parse(existingData) : [];
-    } else {
-      // Create the file if it doesn't exist
-      fs.writeFileSync(filePath, JSON.stringify([]));
+    if (response.ok) {
+      const existingData = await response.json();
+      teamData = existingData || [];
     }
 
     // Check if the team already exists
@@ -35,8 +31,18 @@ export async function POST(req: Request) {
     // Append new team to the data
     teamData.push(data);
 
-    // Save the updated data to the file
-    fs.writeFileSync(filePath, JSON.stringify(teamData, null, 2));
+    // Save the updated data back to Render Cloud Shell
+    const formData = new FormData();
+    formData.append('filee', new Blob([JSON.stringify(teamData, null, 2)], { type: 'application/json' }), 'teamdata.json');
+
+    const uploadResponse = await fetch(`${RENDER_CLOUD_SHELL_BASE_URL}/`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error('Failed to upload JSON to Render Cloud Shell');
+    }
 
     return NextResponse.json({ message: 'Data saved successfully' }, { status: 200 });
   } catch (error) {
