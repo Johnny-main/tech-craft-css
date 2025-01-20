@@ -1,6 +1,8 @@
 import { promisify } from 'util';
 import puppeteer from 'puppeteer';
 import getPixels from 'get-pixels';
+import fs from 'fs';
+import path from 'path';
 
 const readPixels = async (imagePath: string) => {
   const res = await promisify(getPixels)(imagePath, 'image/png');
@@ -39,6 +41,12 @@ const takeScreenshot = async (
     await page.goto(url);
     await page.$eval('iframe', (e, html) => e.setAttribute('srcdoc', html), html);
 
+    // Ensure the directory exists
+    const submissionDir = path.join(process.cwd(), 'files', 'submission');
+    if (!fs.existsSync(submissionDir)) {
+      fs.mkdirSync(submissionDir, { recursive: true });
+    }
+
     for (let i = 0; i < selectors.length; i++) {
       const selector = selectors[i];
       const fileName = fileNames[i]; // Map the filename to the selector
@@ -47,8 +55,11 @@ const takeScreenshot = async (
       if (element) {
         const timestamp = new Date();
         const formattedTimestamp = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}_${String(timestamp.getHours()).padStart(2, '0')}-${String(timestamp.getMinutes()).padStart(2, '0')}-${String(timestamp.getSeconds()).padStart(2, '0')}`;
-        await element.screenshot({ path: `public/submissions/${formattedTimestamp}-${fileName}.png`, type: 'png' });
-        console.log(`Screenshot saved: public/submissions/${formattedTimestamp}-${fileName}.png`);
+
+        const filePath = path.join(submissionDir, `${formattedTimestamp}-${fileName}.png`);
+        await element.screenshot({ path: filePath, type: 'png' });
+
+        console.log(`Screenshot saved: ${filePath}`);
       } else {
         console.warn(`Selector not found: .${selector}`);
       }
