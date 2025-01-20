@@ -42,9 +42,9 @@ const uploadToCloudShell = async (fileBuffer: Buffer, fileName: string) => {
     const response = await fetch(CLOUD_SHELL_BASE_URL, requestOptions);
     
     if (response.ok) {
-      console.log(File uploaded successfully: ${fileName});
+      console.log(`File uploaded successfully: ${fileName}`);
     } else {
-      console.error(Failed to upload file: ${response.statusText});
+      console.error(`Failed to upload file: ${response.statusText}`);
     }
   } catch (error) {
     console.error('Error while uploading to Cloud Shell:', error);
@@ -77,21 +77,21 @@ const takeScreenshot = async (
     for (let i = 0; i < selectors.length; i++) {
       const selector = selectors[i];
       const fileName = fileNames[i]; // Map the filename to the selector
-      const element = await page.$(.${selector});
+      const element = await page.$(`.${selector}`);
 
       if (element) {
         const timestamp = new Date();
-        const formattedTimestamp = ${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}_${String(timestamp.getHours()).padStart(2, '0')}-${String(timestamp.getMinutes()).padStart(2, '0')}-${String(timestamp.getSeconds()).padStart(2, '0')};
+        const formattedTimestamp = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}_${String(timestamp.getHours()).padStart(2, '0')}-${String(timestamp.getMinutes()).padStart(2, '0')}-${String(timestamp.getSeconds()).padStart(2, '0')}`;
 
         // Take a screenshot and save it to a buffer (in memory) instead of a file
         const screenshotBuffer = await element.screenshot({ type: 'png' });
 
-        console.log(Screenshot captured for selector: .${selector});
+        console.log(`Screenshot captured for selector: .${selector}`);
 
         // Upload the screenshot directly to Cloud Shell
-        await uploadToCloudShell(screenshotBuffer, ${formattedTimestamp}-${fileName}.png);
+        await uploadToCloudShell(screenshotBuffer, `${formattedTimestamp}-${fileName}.png`);
       } else {
-        console.warn(Selector not found: .${selector});
+        console.warn(`Selector not found: .${selector}`);
       }
     }
 
