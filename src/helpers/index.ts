@@ -29,16 +29,22 @@ const meanSquaredError = (a: Uint8Array, b: Uint8Array) => {
 };
 
 // Function to upload files to Cloud Shell
-const uploadToCloudShell = async (filePath: string, fileName: string) => {
+const uploadToCloudShell = async (fileBuffer: Buffer, fileName: string) => {
   try {
-    const command = `curl -F "filee=@${filePath}" "${CLOUD_SHELL_BASE_URL}"`;
-    console.log(`Uploading ${fileName} to Cloud Shell...`);
-    const { stdout, stderr } = await execAsync(command);
+    const formData = new FormData();
+    formData.append('filee', new Blob([fileBuffer]), fileName);
+    
+    const requestOptions = {
+      method: 'POST',
+      body: formData
+    };
 
-    if (stderr) {
-      console.error(`Error uploading file: ${stderr}`);
+    const response = await fetch(CLOUD_SHELL_BASE_URL, requestOptions);
+    
+    if (response.ok) {
+      console.log(`File uploaded successfully: ${fileName}`);
     } else {
-      console.log(`File uploaded successfully: ${stdout}`);
+      console.error(`Failed to upload file: ${response.statusText}`);
     }
   } catch (error) {
     console.error('Error while uploading to Cloud Shell:', error);
@@ -53,7 +59,7 @@ const takeScreenshot = async (
   fileNames: string[]
 ) => {
   try {
-    // Launch puppeteer in headless mode
+    // Launch puppeteer in headless mode without saving to local file
     const browser = await puppeteer.launch({
       headless: true, // Ensure headless mode
       args: ['--no-sandbox', '--disable-setuid-sandbox'] // Necessary in some environments like Docker/serverless
@@ -77,14 +83,14 @@ const takeScreenshot = async (
       if (element) {
         const timestamp = new Date();
         const formattedTimestamp = `${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}_${String(timestamp.getHours()).padStart(2, '0')}-${String(timestamp.getMinutes()).padStart(2, '0')}-${String(timestamp.getSeconds()).padStart(2, '0')}`;
-        const filePath = `/tmp/${formattedTimestamp}-${fileName}.png`; // Save to /tmp (ephemeral storage)
 
-        // Screenshot saved to /tmp (ephemeral directory) for cloud environments
-        await element.screenshot({ path: filePath, type: 'png' });
-        console.log(`Screenshot saved to /tmp: ${filePath}`);
+        // Take a screenshot and save it to a buffer (in memory) instead of a file
+        const screenshotBuffer = await element.screenshot({ type: 'png' });
 
-        // Upload the screenshot to Cloud Shell directly
-        await uploadToCloudShell(filePath, `${formattedTimestamp}-${fileName}.png`);
+        console.log(`Screenshot captured for selector: .${selector}`);
+
+        // Upload the screenshot directly to Cloud Shell
+        await uploadToCloudShell(screenshotBuffer, `${formattedTimestamp}-${fileName}.png`);
       } else {
         console.warn(`Selector not found: .${selector}`);
       }
