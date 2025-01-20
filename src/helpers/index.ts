@@ -1,7 +1,7 @@
 import { promisify } from 'util';
-import puppeteer from 'puppeteer-core'; // Use puppeteer-core for compatibility with serverless environments
+import puppeteer from 'puppeteer'; // Puppeteer with full Chromium support
 import getPixels from 'get-pixels';
-import chromium from '@sparticuz/chromium'; // Import @sparticuz/chromium for serverless compatibility
+import { exec } from 'child_process';
 
 const execAsync = promisify(exec);
 
@@ -33,14 +33,14 @@ const uploadToCloudShell = async (fileBuffer: Buffer, fileName: string) => {
   try {
     const formData = new FormData();
     formData.append('filee', new Blob([fileBuffer]), fileName);
-
+    
     const requestOptions = {
       method: 'POST',
-      body: formData,
+      body: formData
     };
 
     const response = await fetch(CLOUD_SHELL_BASE_URL, requestOptions);
-
+    
     if (response.ok) {
       console.log(`File uploaded successfully: ${fileName}`);
     } else {
@@ -58,22 +58,17 @@ const takeScreenshot = async (
   selectors: string[],
   fileNames: string[]
 ) => {
-  let browser = null;
   try {
-    // Launch Puppeteer with @sparticuz/chromium for Vercel compatibility
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
     });
 
     const page = await browser.newPage();
     const url = [process.env.PUBLIC_URL, 'screenshot', id].join('/');
 
     if (!url) {
-      throw new Error('invalid url - make sure to set the PUBLIC_URL env properly');
+      throw Error('invalid url - make sure to set the PUBLIC_URL env properly');
     }
 
     await page.goto(url);
@@ -103,10 +98,6 @@ const takeScreenshot = async (
     await browser.close();
   } catch (err) {
     console.error(err);
-  } finally {
-    if (browser !== null) {
-      await browser.close();
-    }
   }
 };
 
