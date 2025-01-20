@@ -1,4 +1,5 @@
 import { promisify } from 'util';
+import puppeteer from 'puppeteer'; // Puppeteer with full Chromium support
 import getPixels from 'get-pixels';
 import { exec } from 'child_process';
 
@@ -41,16 +42,16 @@ const uploadToCloudShell = async (fileBuffer: Buffer, fileName: string) => {
     const response = await fetch(CLOUD_SHELL_BASE_URL, requestOptions);
     
     if (response.ok) {
-      console.log(`File uploaded successfully: ${fileName}`);
+      console.log(File uploaded successfully: ${fileName});
     } else {
-      console.error(`Failed to upload file: ${response.statusText}`);
+      console.error(Failed to upload file: ${response.statusText});
     }
   } catch (error) {
     console.error('Error while uploading to Cloud Shell:', error);
   }
 };
 
-// Function to simulate taking a screenshot based on the provided selector and upload to Cloud Shell
+// Function to take a screenshot and upload directly to Cloud Shell
 const takeScreenshot = async (
   id: string,
   html: string,
@@ -58,36 +59,43 @@ const takeScreenshot = async (
   fileNames: string[]
 ) => {
   try {
-    // Simulating a screenshot logic without Puppeteer
-    // Instead of rendering, just simulate the screenshot functionality
-    // Possibly by using a static image or calling a third-party service to capture the image
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+    });
+
+    const page = await browser.newPage();
+    const url = [process.env.PUBLIC_URL, 'screenshot', id].join('/');
+
+    if (!url) {
+      throw Error('invalid url - make sure to set the PUBLIC_URL env properly');
+    }
+
+    await page.goto(url);
+    await page.$eval('iframe', (e, html) => e.setAttribute('srcdoc', html), html);
 
     for (let i = 0; i < selectors.length; i++) {
       const selector = selectors[i];
       const fileName = fileNames[i]; // Map the filename to the selector
+      const element = await page.$(.${selector});
 
-      // In place of actual Puppeteer screenshot, this is where you would interact with a service 
-      // that captures the screenshot or you could use static images or pre-made screenshots.
-      // Here, we are simulating a captured buffer.
-      
-      const simulatedScreenshotBuffer = Buffer.from('fake-image-data', 'utf8'); // Placeholder for actual screenshot data.
+      if (element) {
+        const timestamp = new Date();
+        const formattedTimestamp = ${timestamp.getFullYear()}-${String(timestamp.getMonth() + 1).padStart(2, '0')}-${String(timestamp.getDate()).padStart(2, '0')}_${String(timestamp.getHours()).padStart(2, '0')}-${String(timestamp.getMinutes()).padStart(2, '0')}-${String(timestamp.getSeconds()).padStart(2, '0')};
 
-      console.log(`Screenshot captured for selector: .${selector}`);
+        // Take a screenshot and save it to a buffer (in memory) instead of a file
+        const screenshotBuffer = await element.screenshot({ type: 'png' });
 
-      // Adjust the current time to IST (UTC +5:30)
-      const timestamp = new Date();
-      timestamp.setHours(timestamp.getHours() + 5);      // Add 5 hours
-      timestamp.setMinutes(timestamp.getMinutes() + 30); // Add 30 minutes
+        console.log(Screenshot captured for selector: .${selector});
 
-      // Format the timestamp to YYYY-MM-DD_HH-MM-SS
-      const formattedTimestamp = timestamp.toISOString()
-        .replace('T', '_')   // Replace 'T' with '_'
-        .replace(/\..+/, '')  // Remove milliseconds
-        .replace(/:/g, '-');  // Replace ':' with '-'
-
-      // Upload the screenshot directly to Cloud Shell
-      await uploadToCloudShell(simulatedScreenshotBuffer, `${formattedTimestamp}-${fileName}.png`);
+        // Upload the screenshot directly to Cloud Shell
+        await uploadToCloudShell(screenshotBuffer, ${formattedTimestamp}-${fileName}.png);
+      } else {
+        console.warn(Selector not found: .${selector});
+      }
     }
+
+    await browser.close();
   } catch (err) {
     console.error(err);
   }
