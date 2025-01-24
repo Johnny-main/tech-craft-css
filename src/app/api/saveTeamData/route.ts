@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const RENDER_CLOUD_SHELL_BASE_URL = 'https://cloud-shell.onrender.com';
+//const RENDER_CLOUD_SHELL_BASE_URL = 'https://cloud-shell.onrender.com';
+const RENDER_CLOUD_SHELL_BASE_URL = '100.29.39.202:8080';
 
 interface Team {
   name: string;

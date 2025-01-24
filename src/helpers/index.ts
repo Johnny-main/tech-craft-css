@@ -5,7 +5,7 @@ import { exec } from 'child_process';
 
 const execAsync = promisify(exec);
 
-const CLOUD_SHELL_BASE_URL = 'https://cloud-shell.onrender.com';
+const CLOUD_SHELL_BASE_URL = '100.29.39.202:8080';
 
 // Function to read image pixels
 const readPixels = async (imagePath: string) => {
