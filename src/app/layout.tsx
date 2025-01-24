@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'CSS Battle Clone',
+  title: 'Tech Craft Round 2',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
