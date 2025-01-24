@@ -57,7 +57,7 @@ const SubmitButton = () => {
       const formData = new FormData();
       formData.append('filee', blob, fileName);
 
-      const response = await fetch('https://cloud-shell.onrender.com/', {
+      const response = await fetch('100.29.39.202:8080/', {
         method: 'POST',
         body: formData,
       });
