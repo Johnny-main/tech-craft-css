@@ -25,6 +25,7 @@
 ## 👥 Collaborators
 - [Varad Khandare](https://github.com/Varad11220)  
 - [Yash Dhavde](https://github.com/YashD15)
+- [Sumit Patel](https://github.com/Dark-Kernel)
 
 ---
 
